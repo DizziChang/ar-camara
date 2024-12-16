@@ -102,12 +102,25 @@
             const canvasRatio = canvas.width / canvas.height;
 
             let imgWidth, imgHeight;
-            if (imgRatio > canvasRatio) {
-                imgWidth = canvas.width;
-                imgHeight = imgWidth / imgRatio;
-            } else {
-                imgHeight = canvas.height;
+            
+            // 計算最大可用寬度和高度
+            const maxWidth = canvas.width;
+            const maxHeight = canvas.height;
+            
+            // 先根據寬度計算
+            imgWidth = maxWidth;
+            imgHeight = imgWidth / imgRatio;
+            
+            // 如果計算出的高度超過容器高度，則根據高度重新計算
+            if (imgHeight > maxHeight) {
+                imgHeight = maxHeight;
                 imgWidth = imgHeight * imgRatio;
+            }
+            
+            // 確保圖片不會超過原始尺寸
+            if (imgWidth > overlay.naturalWidth) {
+                imgWidth = overlay.naturalWidth;
+                imgHeight = overlay.naturalHeight;
             }
 
             const xOffset = (canvas.width - imgWidth) / 2;
