@@ -91,35 +91,61 @@
 
         // 繪製相機畫面和設計圖片
         function drawCanvas() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
 
             // 繪製相機畫面
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // 繪製設計圖片
-            ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+            // 繪製設計圖片，確保等比例縮放
+            const imgRatio = overlay.naturalWidth / overlay.naturalHeight; // 圖片原始比例
+            const canvasRatio = canvas.width / canvas.height;
 
-            requestAnimationFrame(drawCanvas);
+            let imgWidth, imgHeight;
+            if (imgRatio > canvasRatio) {
+                imgWidth = canvas.width;
+                imgHeight = imgWidth / imgRatio;
+            } else {
+                imgHeight = canvas.height;
+                imgWidth = imgHeight * imgRatio;
+            }
+
+            const xOffset = (canvas.width - imgWidth) / 2;
+            const yOffset = (canvas.height - imgHeight) / 2;
+
+            ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
+
+            animationFrameId = requestAnimationFrame(drawCanvas);
         }
-        let isCapturing = false;
+        function stopDrawCanvas() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
 
         // 拍照功能
-       captureButton.addEventListener('click', () => {
-            if (isCapturing) return; // 防止重複觸發
-            isCapturing = true;
+        captureButton.addEventListener('click', () => {
+            stopDrawCanvas();
 
-            // 將當前畫布內容保存為圖片
             const photoData = canvas.toDataURL('image/png');
             downloadLink.href = photoData;
-            downloadLink.style.display = 'block'; // 顯示下載按鈕
+            downloadLink.style.display = 'block';
             alert('照片已保存，點擊下載！');
 
-            isCapturing = false; // 重置標誌
+            drawCanvas();
         });
 
-        // 啟動相機與畫布
-        video.addEventListener('loadedmetadata', drawCanvas);
+        overlay.onload = () => {
+            drawCanvas(); // 確保圖片載入完成後開始繪製
+        };
+
+        window.addEventListener('resize', () => {
+            drawCanvas(); // 視窗大小改變時重新繪製
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+            enableCamera();
+        });
         enableCamera();
     </script>
 </body>
