@@ -166,20 +166,22 @@ captureButton.addEventListener('click', () => {
 // 啟動相機
 async function enableCamera() {
     try {
+         // 立即請求相機權限並開啟相機
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 facingMode: 'environment'
             } 
         });
         video.srcObject = stream;
-        video.onloadedmetadata = () => {
-            // showLiveCamera();
+        await video.play();  // 確保視訊開始播放
+        // video.onloadedmetadata = () => {
+        //     // showLiveCamera();
 
-            // 初始時顯示 video，隱藏 canvas
-            video.style.display = 'block';
-            canvas.style.display = 'none';
-            showLiveCamera();
-        };
+        //     // 初始時顯示 video，隱藏 canvas
+        //     video.style.display = 'block';
+        //     canvas.style.display = 'none';
+        //     showLiveCamera();
+        // };
     } catch (error) {
         console.error('無法訪問攝像頭:', error);
         alert('請允許訪問攝像頭！');
@@ -231,15 +233,58 @@ async function enableCamera() {
 
         // 拍照功能
         captureButton.addEventListener('click', () => {
-            if (isCapturing) return; // 防止重複觸發
-            isCapturing = true;
+            // if (isCapturing) return; // 防止重複觸發
+            // isCapturing = true;
 
-            // 將當前畫布內容保存為圖片
+            // // 將當前畫布內容保存為圖片
+            // const photoData = canvas.toDataURL('image/png');
+            // downloadLink.href = photoData;
+            // alert('照片已保存，點擊下載！');
+
+            // isCapturing = false; // 重置標誌
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // 繪製相機畫面（保持原始比例）
+            const videoRatio = video.videoWidth / video.videoHeight;
+            const canvasRatio = canvas.width / canvas.height;
+            
+            let drawWidth = canvas.width;
+            let drawHeight = canvas.height;
+            let x = 0;
+            let y = 0;
+            
+            if (videoRatio > canvasRatio) {
+                drawHeight = canvas.width / videoRatio;
+                y = (canvas.height - drawHeight) / 2;
+            } else {
+                drawWidth = canvas.height * videoRatio;
+                x = (canvas.width - drawWidth) / 2;
+            }
+            
+            ctx.drawImage(video, x, y, drawWidth, drawHeight);
+            
+            // 繪製疊加圖片（等比例縮放）
+            const imgRatio = overlay.naturalWidth / overlay.naturalHeight;
+            
+            let imgWidth = canvas.width;
+            let imgHeight = imgWidth / imgRatio;
+            
+            if (imgHeight > canvas.height) {
+                imgHeight = canvas.height;
+                imgWidth = imgHeight * imgRatio;
+            }
+            
+            const xOffset = (canvas.width - imgWidth) / 2;
+            const yOffset = (canvas.height - imgHeight) / 2;
+            
+            ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
+            
+            // 產生下載連結
             const photoData = canvas.toDataURL('image/png');
             downloadLink.href = photoData;
-            alert('照片已保存，點擊下載！');
-
-            isCapturing = false; // 重置標誌
+            downloadLink.style.display = 'block';
         });
 
         // 啟動相機與畫布
