@@ -140,27 +140,20 @@
 
         // 拍照功能
         captureButton.addEventListener('click', () => {
-            // 取得當前畫面
+            if (isCapturing) return; // 防止重複觸發
+            isCapturing = true;
+
+            // 將當前畫布內容保存為圖片
             const photoData = canvas.toDataURL('image/png');
             downloadLink.href = photoData;
-            downloadLink.style.display = 'block';
             alert('照片已保存，點擊下載！');
+
+            isCapturing = false; // 重置標誌
         });
 
-        // 當視窗大小改變時重新調整
-        window.addEventListener('resize', () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            drawCanvas();
-        });
+        // 啟動相機與畫布
+        video.addEventListener('loadedmetadata', drawCanvas);
 
-        // 當視頻準備好時開始繪製
-        video.addEventListener('loadedmetadata', () => {
-            drawCanvas();
-        });
-
-        // 啟動相機
         enableCamera();
     </script>
 </body>
