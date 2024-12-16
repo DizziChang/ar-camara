@@ -82,29 +82,33 @@
         
 // 即時顯示相機畫面
 function showLiveCamera() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // canvas.width = window.innerWidth;
+    // canvas.height = window.innerHeight;
     
-    // 計算相機畫面的縮放和位置
-    const videoRatio = video.videoWidth / video.videoHeight;
-    const canvasRatio = canvas.width / canvas.height;
+    // // 計算相機畫面的縮放和位置
+    // const videoRatio = video.videoWidth / video.videoHeight;
+    // const canvasRatio = canvas.width / canvas.height;
     
-    let drawWidth = canvas.width;
-    let drawHeight = canvas.height;
-    let x = 0;
-    let y = 0;
+    // let drawWidth = canvas.width;
+    // let drawHeight = canvas.height;
+    // let x = 0;
+    // let y = 0;
     
-    // 維持相機畫面原始比例，允許裁切
-    if (videoRatio > canvasRatio) {
-        drawHeight = canvas.width / videoRatio;
-        y = (canvas.height - drawHeight) / 2;
-    } else {
-        drawWidth = canvas.height * videoRatio;
-        x = (canvas.width - drawWidth) / 2;
-    }
+    // // 維持相機畫面原始比例，允許裁切
+    // if (videoRatio > canvasRatio) {
+    //     drawHeight = canvas.width / videoRatio;
+    //     y = (canvas.height - drawHeight) / 2;
+    // } else {
+    //     drawWidth = canvas.height * videoRatio;
+    //     x = (canvas.width - drawWidth) / 2;
+    // }
     
-    // 繪製相機畫面
-    ctx.drawImage(video, x, y, drawWidth, drawHeight);
+    // // 繪製相機畫面
+    // ctx.drawImage(video, x, y, drawWidth, drawHeight);
+    // requestAnimationFrame(showLiveCamera);
+
+    // 直接顯示 video 元素，不進行畫布繪製
+    video.style.display = 'block';
     requestAnimationFrame(showLiveCamera);
 }
 
@@ -130,6 +134,7 @@ captureButton.addEventListener('click', () => {
         x = (canvas.width - drawWidth) / 2;
     }
     
+    // 只在按下快門時繪製到 canvas
     ctx.drawImage(video, x, y, drawWidth, drawHeight);
     
     // 繪製疊加圖片（等比例縮放）
@@ -164,6 +169,11 @@ async function enableCamera() {
         });
         video.srcObject = stream;
         video.onloadedmetadata = () => {
+            // showLiveCamera();
+
+            // 初始時顯示 video，隱藏 canvas
+            video.style.display = 'block';
+            canvas.style.display = 'none';
             showLiveCamera();
         };
     } catch (error) {
