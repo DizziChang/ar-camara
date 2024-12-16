@@ -1,47 +1,61 @@
-<!-- <!DOCTYPE html>
-<html>
-<body>
-    <video id="video" autoplay></video>
-    <canvas id="canvas"></canvas>
-    <img id="overlay" src="images/your-design.png" style="display:none;">
-    
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const overlay = document.getElementById('overlay');
-
-        // 獲取攝像頭權限
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            });
-
-        // 繪製攝像頭畫面和設計圖
-        function drawCanvas() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            ctx.drawImage(video, 0, 0);
-            ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-            
-            requestAnimationFrame(drawCanvas);
-        }
-
-        video.addEventListener('loadedmetadata', drawCanvas);
-    </script>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>相機合照</title>
+    <title>手機相機拍照</title>
     <style>
-        #canvas {
-            display: block;
-            margin: auto;
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        video, canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 2;
+            pointer-events: none; /* 讓圖片無法被點擊 */
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 3;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
         #download {
             display: none;
@@ -49,67 +63,58 @@
     </style>
 </head>
 <body>
-    <video id="video" autoplay style="display:none;"></video>
+    <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
-    <img id="overlay" src="images/your-design.png" style="visibility: hidden;">
-    <br>
-    <button id="capture">拍照</button>
-    <a id="download" download="photo.png">下載圖片</a>
-
+    <img id="overlay" src="images/your-design.png" alt="Design Overlay">
+    <div class="controls">
+        <button id="capture">拍照</button>
+        <a id="download" download="photo.png">下載圖片</a>
+    </div>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('overlay');
+        const captureButton = document.getElementById('capture');
+        const downloadLink = document.getElementById('download');
 
-        // 獲取攝像頭權限
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
+        // 啟用攝像頭
+        async function enableCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error("無法獲取攝像頭權限：", err);
-            });
+            } catch (error) {
+                console.error('無法訪問攝像頭:', error);
+                alert('請允許訪問攝像頭！');
+            }
+        }
 
-        // 確保設計圖載入完成
-        overlay.onload = () => {
-            overlay.style.visibility = "visible"; // 顯示設計圖
-            drawCanvas(); // 開始繪製畫布
-        };
-
-        // 繪製畫布
+        // 繪製相機畫面和設計圖片
         function drawCanvas() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
 
+            // 繪製相機畫面
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            const overlayRatio = overlay.width / overlay.height;
-            const canvasRatio = canvas.width / canvas.height;
-
-            let overlayWidth, overlayHeight;
-            if (overlayRatio > canvasRatio) {
-                overlayWidth = canvas.width;
-                overlayHeight = overlayWidth / overlayRatio;
-            } else {
-                overlayHeight = canvas.height;
-                overlayWidth = overlayHeight * overlayRatio;
-            }
-
-            const xOffset = (canvas.width - overlayWidth) / 2;
-            const yOffset = (canvas.height - overlayHeight) / 2;
-
-            ctx.drawImage(overlay, xOffset, yOffset, overlayWidth, overlayHeight);
+            // 繪製設計圖片
+            ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
 
             requestAnimationFrame(drawCanvas);
         }
 
         // 拍照功能
-        document.getElementById('capture').addEventListener('click', () => {
-            const downloadLink = document.getElementById('download');
-            downloadLink.href = canvas.toDataURL('image/png');
+        captureButton.addEventListener('click', () => {
+            // 將當前畫布內容保存為圖片
+            const photoData = canvas.toDataURL('image/png');
+            downloadLink.href = photoData;
             downloadLink.style.display = 'block'; // 顯示下載按鈕
+            alert('照片已保存，點擊下載！');
         });
+
+        // 啟動相機與畫布
+        video.addEventListener('loadedmetadata', drawCanvas);
+        enableCamera();
     </script>
 </body>
 </html>
