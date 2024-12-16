@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <body>
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
-    <img id="overlay" src="your-design.png" style="display:none;">
+    <img id="overlay" src="images/your-design.png" style="display:none;">
     
     <script>
         const video = document.getElementById('video');
@@ -29,6 +29,87 @@
         }
 
         video.addEventListener('loadedmetadata', drawCanvas);
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相機合照</title>
+    <style>
+        #canvas {
+            display: block;
+            margin: auto;
+        }
+        #download {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas"></canvas>
+    <img id="overlay" src="images/your-design.png" style="visibility: hidden;">
+    <br>
+    <button id="capture">拍照</button>
+    <a id="download" download="photo.png">下載圖片</a>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+
+        // 獲取攝像頭權限
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("無法獲取攝像頭權限：", err);
+            });
+
+        // 確保設計圖載入完成
+        overlay.onload = () => {
+            overlay.style.visibility = "visible"; // 顯示設計圖
+            drawCanvas(); // 開始繪製畫布
+        };
+
+        // 繪製畫布
+        function drawCanvas() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const overlayRatio = overlay.width / overlay.height;
+            const canvasRatio = canvas.width / canvas.height;
+
+            let overlayWidth, overlayHeight;
+            if (overlayRatio > canvasRatio) {
+                overlayWidth = canvas.width;
+                overlayHeight = overlayWidth / overlayRatio;
+            } else {
+                overlayHeight = canvas.height;
+                overlayWidth = overlayHeight * overlayRatio;
+            }
+
+            const xOffset = (canvas.width - overlayWidth) / 2;
+            const yOffset = (canvas.height - overlayHeight) / 2;
+
+            ctx.drawImage(overlay, xOffset, yOffset, overlayWidth, overlayHeight);
+
+            requestAnimationFrame(drawCanvas);
+        }
+
+        // 拍照功能
+        document.getElementById('capture').addEventListener('click', () => {
+            const downloadLink = document.getElementById('download');
+            downloadLink.href = canvas.toDataURL('image/png');
+            downloadLink.style.display = 'block'; // 顯示下載按鈕
+        });
     </script>
 </body>
 </html>
