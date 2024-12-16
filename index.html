@@ -78,6 +78,8 @@
         const captureButton = document.getElementById('capture');
         const downloadLink = document.getElementById('download');
 
+        let animationFrameId = null; // 添加全局變量來追踪動畫幀
+
         // 啟用攝像頭
         async function enableCamera() {
             try {
@@ -98,7 +100,7 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // 繪製設計圖片，確保等比例縮放
-            const imgRatio = overlay.naturalWidth / overlay.naturalHeight; // 圖片原始比例
+            const imgRatio = overlay.naturalWidth / overlay.naturalHeight;
             const canvasRatio = canvas.width / canvas.height;
 
             let imgWidth, imgHeight;
@@ -128,11 +130,17 @@
 
             ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
 
-            animationFrameId = requestAnimationFrame(drawCanvas);
+            // 只有在沒有正在進行的動畫時才請求新的動畫幀
+            if (!animationFrameId) {
+                animationFrameId = requestAnimationFrame(drawCanvas);
+            }
         }
+
+        // 修改 stopDrawCanvas 函數
         function stopDrawCanvas() {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
+                animationFrameId = null; // 重置動畫幀 ID
             }
         }
 
@@ -152,13 +160,18 @@
             drawCanvas(); // 確保圖片載入完成後開始繪製
         };
 
+        // 修改視窗大小事件處理
         window.addEventListener('resize', () => {
-            drawCanvas(); // 視窗大小改變時重新繪製
+            stopDrawCanvas(); // 先停止當前動畫
+            drawCanvas(); // 重新開始繪製
         });
 
+        // 修改視頻加載事件處理
         video.addEventListener('loadedmetadata', () => {
-            enableCamera();
+            stopDrawCanvas(); // 先停止當前動畫
+            drawCanvas(); // 重新開始繪製
         });
+
         enableCamera();
     </script>
 </body>
