@@ -65,7 +65,7 @@
 <body>
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
-    <img id="overlay" src="images/your-design.png" alt="Design Overlay" style="display: none;">
+    <img id="overlay" src="images/your-design.png" alt="Design Overlay">
     <div class="controls">
         <button id="capture">拍照</button>
         <a id="download" download="photo.png">下載圖片</a>
@@ -153,6 +153,10 @@ captureButton.addEventListener('click', () => {
     
     ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
     
+    // 顯示 canvas，隱藏 video
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+
     // 產生下載連結
     const photoData = canvas.toDataURL('image/png');
     downloadLink.href = photoData;
