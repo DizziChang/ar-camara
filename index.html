@@ -84,30 +84,9 @@
         function showLiveCamera() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-
-            // 計算相機畫面的縮放和位置
-            const videoRatio = video.videoWidth / video.videoHeight;
-            const canvasRatio = canvas.width / canvas.height;
-            
-            let drawWidth = canvas.width;
-            let drawHeight = canvas.height;
-            let x = 0;
-            let y = 0;
-            
-            // 維持相機畫面原始比例，允許裁切
-            if (videoRatio > canvasRatio) {
-                drawHeight = canvas.width / videoRatio;
-                y = (canvas.height - drawHeight) / 2;
-            } else {
-                drawWidth = canvas.height * videoRatio;
-                x = (canvas.width - drawWidth) / 2;
-            }
-            
-            // 繪製相機畫面
-            ctx.drawImage(video, x, y, drawWidth, drawHeight);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             requestAnimationFrame(showLiveCamera);
         }
-        
         // 拍照功能
         captureButton.addEventListener('click', () => {
             // 停止即時預覽
