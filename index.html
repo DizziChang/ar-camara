@@ -78,12 +78,16 @@
         const captureButton = document.getElementById('capture');
         const downloadLink = document.getElementById('download');
 
-        let animationFrameId = null; // 添加全局變量來追踪動畫幀
+        let animationFrameId = null;
 
         // 啟用攝像頭
         async function enableCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment' // 使用後置相機
+                    } 
+                });
                 video.srcObject = stream;
             } catch (error) {
                 console.error('無法訪問攝像頭:', error);
@@ -125,53 +129,38 @@
                 imgHeight = overlay.naturalHeight;
             }
 
-            const xOffset = (canvas.width - imgWidth) / 2;
-            const yOffset = (canvas.height - imgHeight) / 2;
+                const xOffset = (canvas.width - imgWidth) / 2;
+                const yOffset = (canvas.height - imgHeight) / 2;
 
-            ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
-
-            // 只有在沒有正在進行的動畫時才請求新的動畫幀
-            if (!animationFrameId) {
-                animationFrameId = requestAnimationFrame(drawCanvas);
+                ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
             }
-        }
 
-        // 修改 stopDrawCanvas 函數
-        function stopDrawCanvas() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null; // 重置動畫幀 ID
-            }
-        }
+            animationFrameId = requestAnimationFrame(drawCanvas);
+
 
         // 拍照功能
         captureButton.addEventListener('click', () => {
-            stopDrawCanvas();
-
+            // 取得當前畫面
             const photoData = canvas.toDataURL('image/png');
             downloadLink.href = photoData;
             downloadLink.style.display = 'block';
             alert('照片已保存，點擊下載！');
+        });
 
+        // 當視窗大小改變時重新調整
+        window.addEventListener('resize', () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
             drawCanvas();
         });
 
-        overlay.onload = () => {
-            drawCanvas(); // 確保圖片載入完成後開始繪製
-        };
-
-        // 修改視窗大小事件處理
-        window.addEventListener('resize', () => {
-            stopDrawCanvas(); // 先停止當前動畫
-            drawCanvas(); // 重新開始繪製
-        });
-
-        // 修改視頻加載事件處理
+        // 當視頻準備好時開始繪製
         video.addEventListener('loadedmetadata', () => {
-            stopDrawCanvas(); // 先停止當前動畫
-            drawCanvas(); // 重新開始繪製
+            drawCanvas();
         });
 
+        // 啟動相機
         enableCamera();
     </script>
 </body>
