@@ -80,62 +80,97 @@
 
         let animationFrameId = null;
         
-        // 即時顯示相機畫面
-        function showLiveCamera() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            requestAnimationFrame(showLiveCamera);
-        }
-        // 拍照功能
-        captureButton.addEventListener('click', () => {
-            // 停止即時預覽
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // 繪製相機畫面
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // 繪製疊加圖片
-            const imgRatio = overlay.naturalWidth / overlay.naturalHeight;
-            const canvasRatio = canvas.width / canvas.height;
-            
-            let imgWidth = canvas.width;
-            let imgHeight = imgWidth / imgRatio;
-            
-            if (imgHeight > canvas.height) {
-                imgHeight = canvas.height;
-                imgWidth = imgHeight * imgRatio;
-            }
-            
-            const xOffset = (canvas.width - imgWidth) / 2;
-            const yOffset = (canvas.height - imgHeight) / 2;
-            
-            ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
-            
-            // 產生下載連結
-            const photoData = canvas.toDataURL('image/png');
-            downloadLink.href = photoData;
-            downloadLink.style.display = 'block';
-        });
+// 即時顯示相機畫面
+function showLiveCamera() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // 計算相機畫面的縮放和位置
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const canvasRatio = canvas.width / canvas.height;
+    
+    let drawWidth = canvas.width;
+    let drawHeight = canvas.height;
+    let x = 0;
+    let y = 0;
+    
+    // 維持相機畫面原始比例，允許裁切
+    if (videoRatio > canvasRatio) {
+        drawHeight = canvas.width / videoRatio;
+        y = (canvas.height - drawHeight) / 2;
+    } else {
+        drawWidth = canvas.height * videoRatio;
+        x = (canvas.width - drawWidth) / 2;
+    }
+    
+    // 繪製相機畫面
+    ctx.drawImage(video, x, y, drawWidth, drawHeight);
+    requestAnimationFrame(showLiveCamera);
+}
 
-        // 啟用攝像頭
-        async function enableCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment' // 使用後置相機
-                    } 
-                });
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-            showLiveCamera(); // 開始即時預覽
+// 拍照功能
+captureButton.addEventListener('click', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // 繪製相機畫面（保持原始比例）
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const canvasRatio = canvas.width / canvas.height;
+    
+    let drawWidth = canvas.width;
+    let drawHeight = canvas.height;
+    let x = 0;
+    let y = 0;
+    
+    if (videoRatio > canvasRatio) {
+        drawHeight = canvas.width / videoRatio;
+        y = (canvas.height - drawHeight) / 2;
+    } else {
+        drawWidth = canvas.height * videoRatio;
+        x = (canvas.width - drawWidth) / 2;
+    }
+    
+    ctx.drawImage(video, x, y, drawWidth, drawHeight);
+    
+    // 繪製疊加圖片（等比例縮放）
+    const imgRatio = overlay.naturalWidth / overlay.naturalHeight;
+    
+    let imgWidth = canvas.width;
+    let imgHeight = imgWidth / imgRatio;
+    
+    if (imgHeight > canvas.height) {
+        imgHeight = canvas.height;
+        imgWidth = imgHeight * imgRatio;
+    }
+    
+    const xOffset = (canvas.width - imgWidth) / 2;
+    const yOffset = (canvas.height - imgHeight) / 2;
+    
+    ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
+    
+    // 產生下載連結
+    const photoData = canvas.toDataURL('image/png');
+    downloadLink.href = photoData;
+    downloadLink.style.display = 'block';
+});
+
+// 啟動相機
+async function enableCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment'
+            } 
+        });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            showLiveCamera();
         };
-            } catch (error) {
-                console.error('無法訪問攝像頭:', error);
-                alert('請允許訪問攝像頭！');
-            }
-        }
+    } catch (error) {
+        console.error('無法訪問攝像頭:', error);
+        alert('請允許訪問攝像頭！');
+    }
+}
 
         // 繪製相機畫面和設計圖片
         function drawCanvas() {
