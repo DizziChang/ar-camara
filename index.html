@@ -136,7 +136,8 @@
             }
 
             animationFrameId = requestAnimationFrame(drawCanvas);
-
+            
+            let isCapturing = false; //確保在按下快門時才執行拍照邏輯
 
         // 拍照功能
         captureButton.addEventListener('click', () => {
