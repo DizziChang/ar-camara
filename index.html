@@ -133,11 +133,10 @@
                 const yOffset = (canvas.height - imgHeight) / 2;
 
                 ctx.drawImage(overlay, xOffset, yOffset, imgWidth, imgHeight);
-            }
-
-            animationFrameId = requestAnimationFrame(drawCanvas);
+                animationFrameId = requestAnimationFrame(drawCanvas);
+        }
             
-            let isCapturing = false; //確保在按下快門時才執行拍照邏輯
+        let isCapturing = false; //確保在按下快門時才執行拍照邏輯
 
         // 拍照功能
         captureButton.addEventListener('click', () => {
@@ -153,7 +152,9 @@
         });
 
         // 啟動相機與畫布
-        video.addEventListener('loadedmetadata', drawCanvas);
+        overlay.onload = () => {
+            video.addEventListener('loadedmetadata', drawCanvas);
+        };
 
         enableCamera();
     </script>
