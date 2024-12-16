@@ -102,14 +102,20 @@
 
             requestAnimationFrame(drawCanvas);
         }
+        let isCapturing = false;
 
         // 拍照功能
-        captureButton.addEventListener('click', () => {
+       captureButton.addEventListener('click', () => {
+            if (isCapturing) return; // 防止重複觸發
+            isCapturing = true;
+
             // 將當前畫布內容保存為圖片
             const photoData = canvas.toDataURL('image/png');
             downloadLink.href = photoData;
             downloadLink.style.display = 'block'; // 顯示下載按鈕
             alert('照片已保存，點擊下載！');
+
+            isCapturing = false; // 重置標誌
         });
 
         // 啟動相機與畫布
